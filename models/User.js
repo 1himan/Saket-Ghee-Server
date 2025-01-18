@@ -17,6 +17,9 @@ const userSchema = new mongoose.Schema({
   addresses: [addressSchema],
   wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
   role: { type: String, enum: ["customer", "admin"], default: "customer" }, // For role-based authorization
+  permissions: [
+    { type: String, enum: ["manage_products", "view_reports", "manage_users"] },
+  ], //for admin
   created_at: { type: Date, default: Date.now },
   updated_at: { type: Date, default: Date.now },
 });

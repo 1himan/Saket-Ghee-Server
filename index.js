@@ -2,9 +2,9 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const authRoutes = require("./routes/authRoutes");
 require("dotenv").config();
 const Product = require("./models/Product");
-const userRoutes = require("./routes/userRoutes");
 
 // middlewares and configurations
 // Create an Express app
@@ -94,7 +94,7 @@ app.get("/products/:id", async (req, res) => {
 });
 
 // Use the authentication routes
-app.use("/api/users", userRoutes);
+app.use("/api/auth", authRoutes);
 
 // Admin Routes
 app.post("/products", (req, res) => {
