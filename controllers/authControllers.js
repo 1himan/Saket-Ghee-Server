@@ -68,8 +68,10 @@ const loginUser = async (req, res) => {
 
     // Generate JWT
     const token = generateToken(user._id);
+    console.log(token);
 
     // Set token in HTTP-only cookie
+    // how is this different from storing it in local storage?
     setTokenCookie(res, token);
 
     res.status(200).json({ message: "Logged in successfully", user });

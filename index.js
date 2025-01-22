@@ -2,15 +2,23 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+
 const authRoutes = require("./routes/authRoutes");
-require("dotenv").config();
+require("dotenv").config({
+  path:
+    process.env.NODE_ENV === "production" ? ".env.production" : ".env.development",
+});
 const Product = require("./models/Product");
 
 // middlewares and configurations
 // Create an Express app
 const app = express();
-// Enable CORS
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:3000", // Replace with your frontend URL
+    credentials: true, // Enable sending cookies
+  })
+);
 // Parse JSON bodies (as sent by API clients)
 app.use(express.json());
 
