@@ -1,29 +1,39 @@
+//authControllers.js
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const User = require("../models/User");
+// require("dotenv").config({
+//   path:
+//     process.env.NODE_ENV === "production"
+//       ? ".env.production"
+//       : ".env.development",
+// });
 
 // JWT Secret and Expiration Time (Set these as environment variables in production)
+console.log("fucking hello",process.env.NODE_ENV);
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret_key";
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "7d";
-
+console.log(JWT_SECRET);
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "1d";
+console.log(JWT_EXPIRES_IN);
 // Helper function to generate JWT
 const generateToken = (userId) => {
   return jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 };
 
-// Helper function to set cookie
+// Helper function to set cookie with JWT
 const setTokenCookie = (res, token) => {
   res.cookie("authToken", token, {
-    httpOnly: true, // Prevent client-side JavaScript from accessing the cookie
-    secure: process.env.NODE_ENV === "production", // Only send cookie over HTTPS in production
-    sameSite: "strict", // Prevent CSRF
-    maxAge: 7 * 24 * 60 * 60 * 1000, // Cookie expiration time in milliseconds (7 days)
+    httpOnly: true, // Secure against XSS attacks
+    secure: false, // Set to `true` in production (HTTPS only)
+    sameSite: "lax", // Use 'lax' to allow cookies with same-site navigation
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   });
 };
 
+
 // Register User
 const registerUser = async (req, res) => {
-  console.log("This fucking runs");
+  console.log("This fucking runs says the - register controller");
   const { name, email, password, phone_number } = req.body;
   const role = req.body.role ? req.body.role : "customer";
   try {
@@ -54,7 +64,10 @@ const registerUser = async (req, res) => {
 
 // Login User
 const loginUser = async (req, res) => {
-  console.log("This fucking runs");
+  console.log("This fucking runs says the - login controller");
+  console.log("fucking hello", process.env.NODE_ENV);
+  console.log(JWT_SECRET);
+  console.log(JWT_EXPIRES_IN);
   const { email, password } = req.body;
   try {
     // Find user with the provided email
@@ -71,10 +84,33 @@ const loginUser = async (req, res) => {
     console.log(token);
 
     // Set token in HTTP-only cookie
-    // how is this different from storing it in local storage?
     setTokenCookie(res, token);
-
-    res.status(200).json({ message: "Logged in successfully", user });
+    res.status(200).json({
+      message: "Logged in successfully",
+      // should I include the user details in the response?
+      // the whole point of security is to not expose user details to the client side js
+      // but I can include the user details in the response
+      // what details should be inculded and what not?
+      // the user details looks something like this:
+      // {
+      //     "message": "Logged in successfully",
+      //     "user": {
+      //         "_id": "678b9a877ab695f879e6221d",
+      //         "name": "Himanshu Mahore",
+      //         "email": "vanshumahor@gmail.com",
+      //         "password":   "$2a$10$jeG7FgsaMBXBpVUhC.LnNePa7IYRVNgUKLOfAuFNnKn.mkqLDVpl6",
+      //         "phone_number": "08383819371",
+      //         "wishlist": [],
+      //         "role": "customer",
+      //         "permissions": [],
+      //         "addresses": [],
+      //         "created_at": "2025-01-18T12:11:51.029Z",
+      //         "updated_at": "2025-01-18T12:11:51.029Z",
+      //         "__v": 0
+      //     }
+      // }
+      user,
+    });
   } catch (err) {
     res.status(500).json({ message: "Error logging in", error: err.message });
   }
