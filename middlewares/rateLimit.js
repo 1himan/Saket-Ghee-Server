@@ -1,11 +1,9 @@
-// rateLimit.js is a middleware that limits the number of requests a user can make to the server
-// within a specified time window. This middleware is used to prevent brute force attacks on 
-// the login endpoint. The rate limit is set to 5 requests per 15 minutes. If a user exceeds 
-// the rate limit, they will receive an error message indicating that they have made too many 
-// requests and should try again after 15 minutes.
+// Import the rate limit module
 const rateLimit = require("express-rate-limit");
 
 // Define rate limiter for login attempts
+// This middleware limits the number of requests a user can make to the server
+// within a specified time window to prevent brute force attacks on the login endpoint
 const rateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // Time window (15 minutes)
   max: 5, // Max attempts allowed within the time window
@@ -16,4 +14,5 @@ const rateLimiter = rateLimit({
   legacyHeaders: false, // Disable `X-RateLimit-*` headers
 });
 
+// Export the rate limiter to be used in other parts of the application
 module.exports = rateLimiter;

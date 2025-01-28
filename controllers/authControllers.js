@@ -1,20 +1,12 @@
-//authControllers.js
+// Import necessary modules
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const User = require("../models/User");
-// require("dotenv").config({
-//   path:
-//     process.env.NODE_ENV === "production"
-//       ? ".env.production"
-//       : ".env.development",
-// });
 
 // JWT Secret and Expiration Time (Set these as environment variables in production)
-console.log("fucking hello",process.env.NODE_ENV);
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret_key";
-console.log(JWT_SECRET);
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "1d";
-console.log(JWT_EXPIRES_IN);
+
 // Helper function to generate JWT
 const generateToken = (userId) => {
   return jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
@@ -30,10 +22,8 @@ const setTokenCookie = (res, token) => {
   });
 };
 
-
-// Register User
+// Controller to register a new user
 const registerUser = async (req, res) => {
-  console.log("This fucking runs says the - register controller");
   const { name, email, password, phone_number } = req.body;
   const role = req.body.role ? req.body.role : "customer";
   try {
@@ -52,22 +42,14 @@ const registerUser = async (req, res) => {
     // Set token in HTTP-only cookie
     setTokenCookie(res, token);
 
-    res
-      .status(201)
-      .json({ message: "User created successfully", user: newUser });
+    res.status(201).json({ message: "User created successfully", user: newUser });
   } catch (err) {
-    res
-      .status(500)
-      .json({ message: "Error creating user", error: err.message });
+    res.status(500).json({ message: "Error creating user", error: err.message });
   }
 };
 
-// Login User
+// Controller to login a user
 const loginUser = async (req, res) => {
-  console.log("This fucking runs says the - login controller");
-  console.log("fucking hello", process.env.NODE_ENV);
-  console.log(JWT_SECRET);
-  console.log(JWT_EXPIRES_IN);
   const { email, password } = req.body;
   try {
     // Find user with the provided email
@@ -81,42 +63,25 @@ const loginUser = async (req, res) => {
 
     // Generate JWT
     const token = generateToken(user._id);
-    console.log(token);
 
     // Set token in HTTP-only cookie
     setTokenCookie(res, token);
     res.status(200).json({
       message: "Logged in successfully",
-      // should I include the user details in the response?
-      // the whole point of security is to not expose user details to the client side js
-      // but I can include the user details in the response
-      // what details should be inculded and what not?
-      // the user details looks something like this:
-      // {
-      //     "message": "Logged in successfully",
-      //     "user": {
-      //         "_id": "678b9a877ab695f879e6221d",
-      //         "name": "Himanshu Mahore",
-      //         "email": "vanshumahor@gmail.com",
-      //         "password":   "$2a$10$jeG7FgsaMBXBpVUhC.LnNePa7IYRVNgUKLOfAuFNnKn.mkqLDVpl6",
-      //         "phone_number": "08383819371",
-      //         "wishlist": [],
-      //         "role": "customer",
-      //         "permissions": [],
-      //         "addresses": [],
-      //         "created_at": "2025-01-18T12:11:51.029Z",
-      //         "updated_at": "2025-01-18T12:11:51.029Z",
-      //         "__v": 0
-      //     }
-      // }
-      user,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        phone_number: user.phone_number,
+      },
     });
   } catch (err) {
     res.status(500).json({ message: "Error logging in", error: err.message });
   }
 };
 
-// Logout User
+// Controller to logout a user
 const logoutUser = (req, res) => {
   res.clearCookie("authToken", {
     httpOnly: true,
@@ -126,6 +91,7 @@ const logoutUser = (req, res) => {
   res.status(200).json({ message: "Logged out successfully" });
 };
 
+// Export the controller functions to be used in other parts of the application
 module.exports = {
   registerUser,
   loginUser,

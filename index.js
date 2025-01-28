@@ -1,53 +1,28 @@
 // server/index.js
-
-// Import required dependencies
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const dotenv = require("dotenv");
 
-// Import route modules
+// Import routes
 const authRoutes = require("./routes/authRoutes");
+const productRoutes = require("./routes/productRoutes");
 
-// Import models
-const Product = require("./models/Product");
-
-/**
- * Server Configuration and Initialization
- *
- * This module sets up an Express server with MongoDB integration,
- * configuring middleware, routes, and database connection.
- *
- * Key Features:
- * - Environment-based configuration
- * - CORS support
- * - JSON and cookie parsing
- * - MongoDB connection
- * - Product and authentication routes
- */
 class ServerApp {
   constructor() {
-    // Initialize Express application
+    // initialize express app
     this.app = express();
-
-    // Load environment variables
+    // load environment variables - function call:1
     this.loadEnvironmentConfig();
-
-    // Configure middleware
+    // configure middleware - function call:2
     this.configureMiddleware();
-
-    // Connect to database
+    // connect to database - function call:3
     this.connectDatabase();
-
-    // Setup routes
+    // setup routes - function call:4
     this.setupRoutes();
   }
-
-  /**
-   * Load environment-specific configuration
-   * Selects between production and development environment files
-   */
+  // function definition:1
   loadEnvironmentConfig() {
     dotenv.config({
       path:
@@ -56,13 +31,8 @@ class ServerApp {
           : ".env.development",
     });
   }
-
-  /**
-   * Configure Express middleware
-   * Sets up CORS, JSON parsing, and cookie handling
-   */
+  // function definition:2
   configureMiddleware() {
-    // CORS configuration
     this.app.use(
       cors({
         origin: process.env.FRONTEND_URL || "http://localhost:3000",
@@ -70,152 +40,29 @@ class ServerApp {
       })
     );
 
-    // Parse JSON request bodies
     this.app.use(express.json());
-
-    // Parse cookies
     this.app.use(cookieParser());
   }
-
-  /**
-   * Establish MongoDB database connection
-   * Handles successful and failed connection scenarios
-   */
+  // function definition:3
   connectDatabase() {
     mongoose
       .connect(process.env.MONGODB_URI || "mongodb://localhost:27017/saketGhee")
       .then(() => console.log("Connected to MongoDB"))
       .catch((err) => {
         console.error("MongoDB connection error:", err);
-        process.exit(1); // Exit process on connection failure
+        process.exit(1);
       });
   }
-
-  /**
-   * Setup application routes
-   * Defines API endpoints for different resources
-   */
+  // function definition:4
   setupRoutes() {
-    // Root endpoint
     this.app.get("/", (req, res) => {
       res.send("Welcome to the Saket Ghee Server");
     });
 
-    // Product routes
-    this.app.use("/products", this.productRoutes());
-
-    // Authentication routes
+    this.app.use("/products", productRoutes);
     this.app.use("/api/auth", authRoutes);
   }
 
-  /**
-   * Product route handler
-   * Manages product-related API endpoints
-   * @returns {express.Router} Configured product routes
-   */
-  productRoutes() {
-    const router = express.Router();
-
-    // Get all products with search and pagination
-    router.get("/", async (req, res) => {
-      console.log("This fucking runs says the - product route");
-      const { search, page = 1, limit = 20 } = req.query;
-
-      try {
-        const query = search ? { name: { $regex: search, $options: "i" } } : {};
-
-        const skip = (page - 1) * limit;
-
-        const products = await Product.find(query)
-          .skip(skip)
-          .limit(Number(limit));
-
-        const totalResults = await Product.countDocuments(query);
-
-        res.status(200).json({ products, totalResults });
-      } catch (error) {
-        res.status(500).json({
-          message: "Error fetching products",
-          error: error.message,
-        });
-      }
-    });
-
-    // Get single product by ID
-    router.get("/:id", async (req, res) => {
-      try {
-        const product = await Product.findOne({
-          _id: req.params.id,
-          $or: [{ isDeleted: false }, { isDeleted: { $exists: false } }],
-        });
-
-        if (!product) {
-          return res.status(404).json({ message: "Product not found" });
-        }
-
-        const transformedProduct = this.transformProduct(product);
-        res.status(200).json(transformedProduct);
-      } catch (error) {
-        this.handleProductError(res, error);
-      }
-    });
-
-    // Admin routes (placeholder implementations)
-    router.post("/", (req, res) => {
-      res.status(501).json({ message: "Product creation not implemented" });
-    });
-
-    router.put("/:id", (req, res) => {
-      res.status(501).json({ message: "Product update not implemented" });
-    });
-
-    router.delete("/:id", (req, res) => {
-      res.status(501).json({ message: "Product deletion not implemented" });
-    });
-
-    return router;
-  }
-
-  /**
-   * Transform product data to match frontend interface
-   * @param {Object} product - MongoDB product document
-   * @returns {Object} Transformed product data
-   */
-  transformProduct(product) {
-    return {
-      _id: product._id,
-      name: product.name,
-      description: product.description || "",
-      price: product.price,
-      originalPrice: product.originalPrice,
-      discount: product.discount,
-      images: product.images || [product.image],
-      videoUrl: product.videoUrl,
-      sizes: product.size ? [product.size] : [],
-      rating: product.rating,
-      reviews: product.reviews,
-      quantityAvailable: product.quantityAvailable,
-    };
-  }
-
-  /**
-   * Handle product-related errors
-   * @param {express.Response} res - Express response object
-   * @param {Error} error - Error object
-   */
-  handleProductError(res, error) {
-    if (error.name === "CastError") {
-      return res.status(400).json({ message: "Invalid product ID format" });
-    }
-    res.status(500).json({
-      message: "Error fetching product",
-      error: error.message,
-    });
-  }
-
-  /**
-   * Start the Express server
-   */
   start() {
     const PORT = process.env.PORT || 5000;
     this.app.listen(PORT, () => {
@@ -225,5 +72,8 @@ class ServerApp {
 }
 
 // Initialize and start the server
-const server = new ServerApp();
+const server = new ServerApp();``
 server.start();
+
+// can we see that what the final code of this server file looks like after importing all of modules
+// and resolving all of the function calls, classes initialization etc? - If yes, then how?
